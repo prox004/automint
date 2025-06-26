@@ -1,13 +1,33 @@
-# AutoMint - Web3 Invoicing App
+# AutoMint - Decentralized Web3 Invoicing System
 
-A modern, mobile-first Web3 invoicing application built with Next.js, Tailwind CSS, and Privy SDK for seamless Web3 authentication.
+AutoMint is a mobile-first Web3 application for creating and managing invoices on Ethereum-compatible testnets. Built with Next.js, it allows merchants to create invoices that customers can pay directly with cryptocurrency.
 
-## Features
+## 🌟 Features
 
-- 🚀 Mobile-first onboarding flow
-- 🔐 Web3 authentication with Privy SDK
-- 💳 Support for email and wallet login
-- 📱 Responsive design optimized for mobile
+### ✅ Completed
+- **Mobile-first UI** with Tailwind CSS
+- **Wallet Integration** via Privy SDK  
+- **Multi-network Balance Display** - Shows wallet balances across 8+ EVM testnets
+- **User Authentication** with username setup
+- **Smart Contract Infrastructure** for invoice management
+- **Create Invoice Page** with full form validation and contract interaction
+- **Firebase Integration** for user data persistence
+- **Real-time Price Data** via CoinGecko API
+
+### 🚧 In Development
+- **Pay Invoice** functionality
+- **Invoice Management** dashboard
+- **Payment Tracking** and notifications
+
+### � Supported Networks
+- Ethereum Sepolia
+- Polygon Mumbai
+- Optimism Goerli
+- Arbitrum Sepolia
+- Base Sepolia
+- Scroll Sepolia
+- Linea Goerli
+- Mantle Testnet
 - ⚡ Built with Next.js 15 and Tailwind CSS
 - 🔗 Multi-chain support (Ethereum, Base, Polygon)
 - 💼 Professional invoice management

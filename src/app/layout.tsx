@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Web3Providers from "@/providers/Web3Providers";
+import { InvoiceProvider } from "@/providers/InvoiceProvider";
 import Layout from "@/components/Layout";
 import ErrorBoundary from "@/components/ErrorBoundary";
 
@@ -32,9 +33,11 @@ export default function RootLayout({
       >
         <ErrorBoundary>
           <Web3Providers>
-            <Layout>
-              {children}
-            </Layout>
+            <InvoiceProvider>
+              <Layout>
+                {children}
+              </Layout>
+            </InvoiceProvider>
           </Web3Providers>
         </ErrorBoundary>
       </body>

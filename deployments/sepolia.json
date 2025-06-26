@@ -1,0 +1,8 @@
+{
+  "contractAddress": "0xFa2bAe2B5D5E4aA7479ce704D9C926915048DBf4",
+  "deployerAddress": "0x24705555a3d1d17741d75eFA6173ef8B8b2ed68d",
+  "networkName": "sepolia",
+  "chainId": 11155111,
+  "deploymentTime": "2025-06-26T12:08:50.458Z",
+  "contractName": "AutoMintInvoice"
+}

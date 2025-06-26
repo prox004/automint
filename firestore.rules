@@ -10,6 +10,23 @@ service cloud.firestore {
     match /usernames/{username} {
       allow read, write: if true; // For now, allow all access
     }
+
+    // Allow all users to read and write invoices (for now)
+    match /invoices/{invoiceId} {
+      allow read, write: if true; // For now, allow all access
+    }
+
+    // Notifications: Users can only read their own notifications, but anyone can create them
+    match /notifications/{notificationId} {
+      // Allow reading only if the notification belongs to the requesting user's wallet
+      allow read: if resource.data.wallet == request.auth.token.wallet_address.toLowerCase();
+      // Allow creating notifications (for merchants to send to clients)
+      allow create: if true;
+      // Allow updating only if the notification belongs to the requesting user's wallet
+      allow update: if resource.data.wallet == request.auth.token.wallet_address.toLowerCase();
+      // Don't allow deletion for now
+      allow delete: if false;
+    }
     
     // Allow connection tests
     match /connection-test/{document} {

@@ -82,9 +82,6 @@ export default function SetupUsernamePage() {
       return;
     }
 
-    // Simulate API call delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
     // Check if taken using Firebase/Firestore
     try {
       const isTaken = await isUsernameTaken(value.toLowerCase());
