@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useRouter } from 'next/navigation';
 import { useUserData } from '@/hooks/useUserData';
+import { saveUserToFirestore, isUsernameTaken } from '@/lib/firestore';
 import { 
   User, 
   Check, 
@@ -41,7 +42,7 @@ export default function SetupUsernamePage() {
   }, [ready, authenticated, userDataLoading, hasUsername, router]);
 
   // Mock list of taken usernames for validation
-  const takenUsernames = ['admin', 'support', 'automint', 'payment', 'invoice', 'crypto', 'web3', 'blockchain'];
+  // Note: This is now handled by Firebase in the validateUsername function
 
   const validateUsername = async (value: string) => {
     setIsValidating(true);
@@ -84,16 +85,23 @@ export default function SetupUsernamePage() {
     // Simulate API call delay
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // Check if taken (mock check)
-    if (takenUsernames.includes(value.toLowerCase())) {
-      setValidationError('This username is already taken');
-      setIsValidating(false);
-      return;
-    }
+    // Check if taken using Firebase/Firestore
+    try {
+      const isTaken = await isUsernameTaken(value.toLowerCase());
+      if (isTaken) {
+        setValidationError('This username is already taken');
+        setIsValidating(false);
+        return;
+      }
 
-    // If we get here, username is valid
-    setIsValid(true);
-    setIsValidating(false);
+      // If we get here, username is valid
+      setIsValid(true);
+      setIsValidating(false);
+    } catch (error) {
+      console.error('Error checking username availability:', error);
+      setValidationError('Unable to check availability - please check your connection');
+      setIsValidating(false);
+    }
   };
 
   const handleUsernameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,15 +124,39 @@ export default function SetupUsernamePage() {
     setIsSaving(true);
 
     try {
-      // Save username using the custom hook
-      const userData = {
+      // Get wallet address from Privy user
+      const walletAddress = user?.wallet?.address || user?.id;
+      
+      if (!walletAddress) {
+        throw new Error('No wallet address found');
+      }
+
+      // Prepare user data for Firebase
+      const userDataToSave = {
+        username: username,
+        walletAddress: walletAddress,
+        usernameTag: `${username}.pay`,
+        email: user?.email?.address,
+        privyUserId: user?.id,
+      };
+
+      // Save to Firebase Firestore (non-blocking)
+      try {
+        await saveUserToFirestore(userDataToSave);
+      } catch (error) {
+        console.warn('Firestore save failed, continuing with localStorage:', error);
+        // Don't block the user experience
+      }
+
+      // Also save to localStorage for offline access
+      const localUserData = {
         username: username,
         usernamePayUrl: `${username}.pay`,
         setupCompleted: true,
         setupDate: new Date().toISOString()
       };
       
-      updateUserData(userData);
+      updateUserData(localUserData);
       
       // Simulate save delay
       await new Promise(resolve => setTimeout(resolve, 1000));
@@ -133,7 +165,20 @@ export default function SetupUsernamePage() {
       router.push('/dashboard');
     } catch (error) {
       console.error('Error saving username:', error);
-      setValidationError('Failed to save username. Please try again.');
+      
+      // More specific error messaging
+      let errorMessage = 'Failed to save username. Please try again.';
+      if (error instanceof Error) {
+        if (error.message.includes('Username is already taken')) {
+          errorMessage = 'This username was just taken by someone else. Please choose another.';
+        } else if (error.message.includes('offline')) {
+          errorMessage = 'You appear to be offline. Please check your connection and try again.';
+        } else if (error.message.includes('permission')) {
+          errorMessage = 'Permission denied. Please try again or contact support.';
+        }
+      }
+      
+      setValidationError(errorMessage);
       setIsSaving(false);
     }
   };

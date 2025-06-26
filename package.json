@@ -13,6 +13,7 @@
     "@privy-io/wagmi": "^1.0.5",
     "@tanstack/react-query": "^5.81.2",
     "autoprefixer": "^10.4.21",
+    "firebase": "^11.9.1",
     "lucide-react": "^0.523.0",
     "next": "15.3.4",
     "postcss": "^8.5.6",
