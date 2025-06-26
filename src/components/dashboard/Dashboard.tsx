@@ -3,6 +3,7 @@
 import { usePrivy } from '@privy-io/react-auth';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { useUserData } from '@/hooks/useUserData';
 import { 
   Plus, 
   FileText, 
@@ -36,6 +37,7 @@ interface Invoice {
 
 export default function Dashboard() {
   const { ready, authenticated, user, logout } = usePrivy();
+  const { hasUsername, username, paymentUrl, isLoading: userDataLoading } = useUserData();
   const router = useRouter();
   const [stats] = useState<DashboardStats>({
     totalInvoices: 12,
@@ -77,12 +79,35 @@ export default function Dashboard() {
   useEffect(() => {
     if (ready && !authenticated) {
       router.push('/');
+    } else if (ready && authenticated && !userDataLoading) {
+      // Check if user has completed username setup
+      if (!hasUsername) {
+        router.push('/setup-username');
+      }
     }
-  }, [ready, authenticated, router]);
+  }, [ready, authenticated, userDataLoading, hasUsername, router]);
 
   const handleLogout = async () => {
     await logout();
     router.push('/');
+  };
+
+  const getDisplayName = () => {
+    if (username) return username;
+    
+    const email = user?.email?.address;
+    if (email) return email.split('@')[0];
+    
+    return 'User';
+  };
+
+  const getUserInitial = () => {
+    if (username) return username.charAt(0).toUpperCase();
+    
+    const email = user?.email?.address;
+    if (email) return email.charAt(0).toUpperCase();
+    
+    return 'U';
   };
 
   const getStatusColor = (status: string) => {
@@ -134,7 +159,7 @@ export default function Dashboard() {
               <div className="flex items-center space-x-3">
                 <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
                   <span className="text-white text-sm font-medium">
-                    {user?.email?.address?.charAt(0).toUpperCase() || 'U'}
+                    {getUserInitial()}
                   </span>
                 </div>
                 <button
@@ -155,11 +180,33 @@ export default function Dashboard() {
         {/* Welcome section */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, {user?.email?.address?.split('@')[0] || 'User'}!
+            Welcome back, {getDisplayName()}!
           </h2>
           <p className="text-gray-600">
             Here's an overview of your invoicing activity.
           </p>
+          
+          {/* Payment URL display */}
+          {username && paymentUrl && (
+            <div className="mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-sm font-medium text-blue-900">Your Payment URL</p>
+                  <p className="font-mono text-lg font-semibold text-blue-600">
+                    {paymentUrl}
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(paymentUrl);
+                  }}
+                  className="px-3 py-1 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  Copy
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Stats cards */}

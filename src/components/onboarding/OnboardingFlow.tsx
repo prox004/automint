@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { usePrivy } from '@privy-io/react-auth';
 import { useRouter } from 'next/navigation';
+import { useUserData } from '@/hooks/useUserData';
 import { 
   ArrowRight, 
   Wallet, 
@@ -24,6 +25,7 @@ interface OnboardingStep {
 
 export default function OnboardingFlow() {
   const { login, logout, ready, authenticated, user } = usePrivy();
+  const { hasUsername, isLoading: userDataLoading } = useUserData();
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,10 +33,15 @@ export default function OnboardingFlow() {
 
   // Redirect if already authenticated
   useEffect(() => {
-    if (ready && authenticated) {
-      router.push('/dashboard');
+    if (ready && authenticated && !userDataLoading) {
+      // Check if user has completed username setup
+      if (hasUsername) {
+        router.push('/dashboard');
+      } else {
+        router.push('/setup-username');
+      }
     }
-  }, [ready, authenticated, router]);
+  }, [ready, authenticated, userDataLoading, hasUsername, router]);
 
   const handleConnect = async () => {
     try {
